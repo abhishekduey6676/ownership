@@ -1,0 +1,30 @@
+# Credentials and local configuration
+.env*
+!.env.example
+*.pem
+*.key
+
+# Dependencies, caches and generated output
+node_modules/
+.pnpm-store/
+.next/
+.vinext/
+.wrangler/
+.sites-runtime/
+.vercel/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+*.log
+
+# Local tools and working artifacts
+.openai/
+.agents/
+.codex/
+/outputs/
+/work/
+.DS_Store
+Thumbs.db
