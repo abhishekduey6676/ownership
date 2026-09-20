@@ -21,7 +21,7 @@ Module._load = function(name, ...args) {
       },
     } };
   } };
-  if (name === '@/lib/ai/gemini') return { extractWithGemini: async input => { providerCalls++; assert.equal(input.text, 'Synthetic watch'); return { provider: 'gemini', fields: { name: 'Watch' } }; } };
+  if (name === '@/lib/ai/gemini') return { extractWithGemini: async input => { providerCalls++; if (!input.bytes) assert.equal(input.text, 'Synthetic watch'); return { provider: 'gemini', fields: { name: 'Watch' } }; } };
   if (name.startsWith('@/')) return originalLoad.call(this, path.resolve(__dirname, '..', name.slice(2)), ...args);
   return originalLoad.call(this, name, ...args);
 };
@@ -47,6 +47,20 @@ const request = (origin = 'http://localhost:5173', consent = true) => {
   assert.equal((await extraction.POST(request('https://example.invalid'))).status, 403);
   assert.equal((await extraction.POST(request(undefined, false))).status, 400);
   assert.equal(identityCalls, 0); // Rejected inputs do not create anonymous users.
+  const fileRequest = (bytes, mime) => {
+    const body = new FormData(); body.set('file', new File([bytes], 'synthetic', { type: mime }));
+    body.set('timeZone', 'Asia/Kolkata'); body.set('consent', 'yes');
+    return new NextRequest('http://localhost:5173/api/extract', { method: 'POST', headers: { Origin: 'http://localhost:5173' }, body });
+  };
+  const oversized = fs.readFileSync(path.join(__dirname, '../public/samples/detailed-invoice.png'));
+  oversized.writeUInt32BE(10000, 16);
+  const { PDFDocument } = require('pdf-lib'); const longPdf = await PDFDocument.create();
+  for (let i = 0; i < 6; i++) longPdf.addPage();
+  for (const [bytes, mime] of [[oversized, 'image/png'], [await longPdf.save(), 'application/pdf'], [Buffer.from('%PDF-broken'), 'application/pdf']]) {
+    const rejected = await extraction.POST(fileRequest(bytes, mime));
+    assert.equal(rejected.status, 400); assert.match((await rejected.json()).error, /manually/);
+    assert.equal(identityCalls, 0); assert.equal(quotaCalls, 0); assert.equal(providerCalls, 0);
+  }
   const response = await extraction.POST(request());
   assert.equal(response.status, 200); assert.equal((await response.json()).fields.name, 'Watch');
   assert.equal(identityCalls, 1); assert.equal(providerCalls, 1);
@@ -76,8 +90,14 @@ const request = (origin = 'http://localhost:5173', consent = true) => {
   verified = false;
   assert.equal((await extraction.POST(request())).status, 401);
   assert.equal(providerCalls, 2); assert.equal(quotaCalls, previousQuotaCalls);
+  verified = true;
+  for (const [extension, mime] of [['png', 'image/png'], ['pdf', 'application/pdf']]) {
+    const bytes = fs.readFileSync(path.join(__dirname, '../public/samples/detailed-invoice.' + extension));
+    assert.equal((await extraction.POST(fileRequest(bytes, mime))).status, 200);
+  }
+  assert.equal(providerCalls, 4); assert.equal(quotaCalls, previousQuotaCalls + 2);
   process.env.NODE_ENV = 'production';
   assert.equal((await extraction.POST(request())).status, 503);
-  assert.equal(providerCalls, 2); assert.equal(quotaCalls, previousQuotaCalls);
+  assert.equal(providerCalls, 4); assert.equal(quotaCalls, previousQuotaCalls + 2);
   console.log('PASS: shared quota required before AI; 429/retry/manual path; fail-closed unavailable or malformed quota; no raw error leaks; slots released; verified identity and production gate. No rendering or external calls.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

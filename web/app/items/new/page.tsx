@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Documents } from '@/components/document-viewer';
 import { fieldLabels, type ItemFields } from '@/lib/mock-data';
+import { uploadLimitHint } from '@/lib/ai/upload-policy';
 export default function AddItem() {
  const router=useRouter();
  const {step,source,text,setText,tab,setTab,error,setError,confirmed,setConfirmed,fields,saving,createdId,selectFile,analyze,save,backToSource,fieldHint,removeSource,useSample,consent,setConsent,draft,editField,enterManually,selectedSample,startAnother}=useAddItem();
@@ -24,6 +25,7 @@ export default function AddItem() {
      <TabsContent value="upload"><label className="drop-zone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();selectFile(e.dataTransfer.files[0])}}>
       <input aria-label="Choose invoice, image or PDF" type="file" className="sr-only" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>{selectFile(e.target.files?.[0]);e.target.value=''}}/>
       <UploadCloud size={38}/><strong>Choose a file or drop it here</strong><span>JPG, PNG, WebP or PDF · 3 MB maximum</span>
+      <span>{uploadLimitHint}</span>
      </label>
      {source&&<div className="flex items-center gap-3 mt-4"><p className="min-w-0 flex-1 break-words">{source.name}</p><Button variant="ghost" size="icon" aria-label="Remove source" onClick={removeSource}><X/></Button></div>}
      </TabsContent><TabsContent value="text"><label htmlFor="source-text">Purchase or product details</label><textarea id="source-text" className="text-source" maxLength={5000} value={text} onChange={e=>setText(e.target.value)} placeholder="I bought a smartwatch today with a six-month warranty…"/></TabsContent>

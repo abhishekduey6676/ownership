@@ -46,6 +46,11 @@ Test cross-household denial for direct IDs, nested resources, storage objects, a
 
 ## 4. Upload security
 
+Current demo: [upload metadata limits](upload-safety.md) enforce 5 PDF pages and 20-megapixel /
+8,192-pixel image bounds before identity/quota/provider calls. Inspection workers have time,
+V8 heap and per-process concurrency limits. This is not malware scanning or a hard total-memory
+sandbox; embedded content, animation, browser previews and aggregate abuse require further review.
+
 - Allowlist required file types and define conservative file count and size limits.
 - Verify declared MIME type against file signatures where practical.
 - Generate storage keys from household and document IDs, never raw filenames.

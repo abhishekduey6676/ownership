@@ -10,7 +10,9 @@ The [16 September demo scope](../product/demo-scope.md) supersedes the historica
 3. Self-guided experience: text-sample picker, optional walkthrough, review tips and restart
    are implemented, with downloadable image/PDF sample files. Next: live evaluation and usability validation.
 4. Public safeguards: shared 5-per-identity/50-total daily attempt counters are implemented and
-   live SQL-tested. Remaining: signup abuse protection, input resource caps and accurate
+   live SQL-tested. PDF page/image dimension metadata caps are implemented with code-only tests
+   ([limits and caveats](../engineering/upload-safety.md)). Remaining: signup abuse protection,
+   aggregate/embedded-content resource safeguards, deployment validation and accurate
    provider/identity disclosures. No 24-hour item expiry or cleanup milestone is needed.
 5. Vercel publication and evaluation with five friends after public safeguards pass.
 
