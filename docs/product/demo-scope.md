@@ -90,6 +90,10 @@ Do not claim GDPR compliance or zero provider retention from demo status alone.
 
 - Server-only AI credentials; private per-user access; no service-role key in frontend code.
 - Server-enforced file type/size/page, text-length, request and concurrency limits.
+- Implemented upload slice: up to 5 PDF pages; images up to 20 megapixels and 8,192 pixels
+  per side, within the existing 3 MiB file cap. Metadata inspection is time-limited and runs
+  before AI allowance is reserved. See [upload safety](../engineering/upload-safety.md) for
+  tests and remaining resource-protection limitations; public AI remains disabled.
 - Per-session abuse controls plus a global AI budget limit; new anonymous sessions must not
   provide an unlimited paid-call bypass. Select numeric limits before release and test them.
 - Approved and implemented: 5 reserved attempts per anonymous browser identity and 50 total

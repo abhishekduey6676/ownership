@@ -39,12 +39,15 @@ and human review. Paid-service terms differ. Account tier was not verified in th
 ## Local safeguards and public-release boundary
 
 - 3 MB maximum image/PDF; 5,000-character text; no empty or mismatched-signature files.
+- Metadata preflight: 1–5 unencrypted PDF pages; images up to 20 megapixels and 8,192 pixels
+  per side. Isolated, time-limited inspection happens before quota/provider calls. See
+  [upload safety](upload-safety.md) for checks and remaining resource limitations.
 - 40-second provider timeout, bounded JSON output, no automatic paid retries.
 - Shared Supabase counters permit 5 attempts per identity per UTC day and 50 total, atomically
   reserved before Gemini. See [shared usage limits](analysis-usage-limits.md). Process-local
   concurrency allows at most two active requests and one per identity; it is not distributed.
 - Production extraction currently fails closed. Complete signup abuse controls,
-  PDF page/resource limits and provider/identity privacy review before enabling
+  remaining aggregate/embedded-content resource protection and provider/identity privacy review before enabling
   the public Vercel endpoint. Do not remove the gate merely to make a deployment work.
 - Manual entry is available without sending source content to Google.
 

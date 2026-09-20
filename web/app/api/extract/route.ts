@@ -5,6 +5,7 @@ import { extractionFileLimit, referenceDateFor, validFileSignature } from '@/lib
 import { reserveExtraction } from '@/lib/ai/local-limits';
 import { reserveSharedAnalysis } from '@/lib/ai/shared-limits';
 import { AnalysisLimitError } from '@/lib/ai/usage-errors';
+import { inspectUpload, UploadInspectionError } from '@/lib/ai/upload-inspection';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
       if (!file.size || file.size > extractionFileLimit) return reply('Choose a nonempty file up to 3 MB.', 400);
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (!validFileSignature(bytes, file.type)) return reply('File contents must match a JPG, PNG, WebP or PDF.', 400);
+      await inspectUpload(bytes, file.type, request.signal);
       input = { bytes, mime: file.type, referenceDate, timeZone: zone };
     } else if (typeof text === 'string' && text.trim() && text.length <= 5000) {
       input = { text: text.trim(), referenceDate, timeZone: zone };
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
     if (request.signal.aborted) return reply('Analysis was cancelled. You can retry or enter details manually.', 400);
     return NextResponse.json(await extractWithGemini(input, request.signal), { headers: { 'Cache-Control': 'no-store' } });
   } catch (cause) {
+    if (cause instanceof UploadInspectionError) return reply(cause.message, cause.status);
     if (cause instanceof AnalysisLimitError) return NextResponse.json({ error: cause.message }, {
       status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(cause.retryAfterSeconds) },
     });
